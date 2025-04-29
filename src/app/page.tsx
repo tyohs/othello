@@ -15,13 +15,35 @@ export default function Home() {
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
   ]);
+  const directions = [
+    [-1, 0],
+    [-1, -1],
+    [0, 1],
+    [1, 1],
+    [1, 0],
+    [1, -1],
+    [0, -1],
+    [-1, -1],
+  ];
   const clickHandler = (x: number, y: number) => {
     console.log(x, y);
     const newBoard = structuredClone(board);
+    if (board[y][x] !== 0) return;
+    if (board[y + 1][x] === turnColor) return;
     if (board[y + 1] !== undefined && board[y + 1][x] === 3 - turnColor) {
-      newBoard[y][x] = turnColor;
-      setTurnColor(3 - turnColor);
-      setBoard(newBoard);
+      let n = 1;
+      while (board[y + n] !== undefined && board[y + n][x] === 3 - turnColor) {
+        n++;
+      }
+      if (board[y + n] !== undefined && board[y + n][x] === turnColor) {
+        newBoard[y][x] = turnColor;
+        for (let i = 1; i < n; i++) {
+          newBoard[y + i][x] = turnColor;
+        }
+
+        setBoard(newBoard);
+        setTurnColor(3 - turnColor);
+      }
     }
   };
   return (

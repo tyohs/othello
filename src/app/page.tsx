@@ -17,7 +17,7 @@ export default function Home() {
   ]);
   const directions = [
     [-1, 0],
-    [-1, -1],
+    [-1, 1],
     [0, 1],
     [1, 1],
     [1, 0],
@@ -28,22 +28,48 @@ export default function Home() {
   const clickHandler = (x: number, y: number) => {
     console.log(x, y);
     const newBoard = structuredClone(board);
-    if (board[y][x] !== 0) return;
-    if (board[y + 1][x] === turnColor) return;
-    if (board[y + 1] !== undefined && board[y + 1][x] === 3 - turnColor) {
+    if (board[y][x] !== 0) return; //同じ場所に石×
+    let flipped = false; // ひっくり返せたらtrue
+
+    for (const [dy, dx] of directions) {
       let n = 1;
-      while (board[y + n] !== undefined && board[y + n][x] === 3 - turnColor) {
-        n++;
-      }
-      if (board[y + n] !== undefined && board[y + n][x] === turnColor) {
-        newBoard[y][x] = turnColor;
-        for (let i = 1; i < n; i++) {
-          newBoard[y + i][x] = turnColor;
+      const ry = y + dy;
+      const rx = x + dx;
+
+      // 隣が盤内＆相手の石か
+      if (
+        board[ry] !== undefined &&
+        board[ry][rx] !== undefined &&
+        board[ry][rx] === 3 - turnColor
+      ) {
+        // さらに奥を調べる
+        while (
+          board[y + dy * (n + 1)] !== undefined &&
+          board[y + dy * (n + 1)][x + dx * (n + 1)] !== undefined &&
+          board[y + dy * (n + 1)][x + dx * (n + 1)] === 3 - turnColor
+        ) {
+          n++;
         }
 
-        setBoard(newBoard);
-        setTurnColor(3 - turnColor);
+        // その次が自分の石ならひっくり返す
+        if (
+          board[y + dy * (n + 1)] !== undefined &&
+          board[y + dy * (n + 1)][x + dx * (n + 1)] !== undefined &&
+          board[y + dy * (n + 1)][x + dx * (n + 1)] === turnColor
+        ) {
+          newBoard[y][x] = turnColor;
+          for (let i = 1; i <= n; i++) {
+            newBoard[y + dy * i][x + dx * i] = turnColor;
+          }
+          flipped = true;
+        }
       }
+    }
+
+    // ひっくり返しがあれば盤面更新・ターン変更
+    if (flipped) {
+      setBoard(newBoard);
+      setTurnColor(3 - turnColor);
     }
   };
   return (

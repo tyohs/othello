@@ -28,21 +28,17 @@ export default function Home() {
   const clickHandler = (x: number, y: number) => {
     console.log(x, y);
     const newBoard = structuredClone(board);
-    if (board[y][x] !== 0) return; //同じ場所に石×
-    let flipped = false; // ひっくり返せたらtrue
-
+    if (board[y][x] !== 0) return;
+    let flipped = false;
     for (const [dy, dx] of directions) {
       let n = 1;
       const ry = y + dy;
       const rx = x + dx;
-
-      // 隣が盤内＆相手の石か
       if (
         board[ry] !== undefined &&
         board[ry][rx] !== undefined &&
         board[ry][rx] === 3 - turnColor
       ) {
-        // さらに奥を調べる
         while (
           board[y + dy * (n + 1)] !== undefined &&
           board[y + dy * (n + 1)][x + dx * (n + 1)] !== undefined &&
@@ -50,8 +46,6 @@ export default function Home() {
         ) {
           n++;
         }
-
-        // その次が自分の石ならひっくり返す
         if (
           board[y + dy * (n + 1)] !== undefined &&
           board[y + dy * (n + 1)][x + dx * (n + 1)] !== undefined &&
@@ -65,8 +59,6 @@ export default function Home() {
         }
       }
     }
-
-    // ひっくり返しがあれば盤面更新・ターン変更
     if (flipped) {
       setBoard(newBoard);
       setTurnColor(3 - turnColor);

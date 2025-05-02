@@ -25,7 +25,7 @@ export default function Home() {
     [0, -1],
     [-1, -1],
   ];
-  //これはテストです
+  //これはテストs
   const clickHandler = (x: number, y: number) => {
     console.log(x, y);
     const newBoard = structuredClone(board);

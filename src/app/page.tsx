@@ -64,6 +64,7 @@ export default function Home() {
       setTurnColor(3 - turnColor);
     }
   };
+  const whoseTurn = turnColor === 1 ? '黒' : '白';
   const oneBoard = board.flat();
   const blackCount = oneBoard.filter((board) => board === 1).length;
   const whiteCount = oneBoard.filter((board) => board === 2).length;
@@ -73,6 +74,7 @@ export default function Home() {
     <div className={styles.container}>
       <div>
         黒：{blackCount} 白：{whiteCount}
+        <p>現在のターンは{whoseTurn}です</p>
       </div>
       <div className={styles.board}>
         {board.map((row, y) =>

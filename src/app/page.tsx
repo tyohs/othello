@@ -71,6 +71,9 @@ export default function Home() {
   console.log('白', whiteCount);
   return (
     <div className={styles.container}>
+      <div>
+        黒：{blackCount} 白：{whiteCount}
+      </div>
       <div className={styles.board}>
         {board.map((row, y) =>
           row.map((color, x) => (

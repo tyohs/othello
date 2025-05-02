@@ -25,7 +25,6 @@ export default function Home() {
     [0, -1],
     [-1, -1],
   ];
-  //これはテストs
   const clickHandler = (x: number, y: number) => {
     console.log(x, y);
     const newBoard = structuredClone(board);
@@ -65,6 +64,11 @@ export default function Home() {
       setTurnColor(3 - turnColor);
     }
   };
+  const oneBoard = board.flat();
+  const blackCount = oneBoard.filter((board) => board === 1).length;
+  const whiteCount = oneBoard.filter((board) => board === 2).length;
+  console.log('黒', blackCount);
+  console.log('白', whiteCount);
   return (
     <div className={styles.container}>
       <div className={styles.board}>

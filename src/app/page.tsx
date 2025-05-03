@@ -55,6 +55,19 @@ export default function Home() {
     }
     return false;
   };
+  const getPlaceable = (nowTurnColor: number, nowBoard: number[][]) => {
+    const placeablePositions: [number, number][] = [];
+
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        if (placeable(x, y, nowTurnColor, nowBoard)) {
+          placeablePositions.push([x, y]);
+        }
+      }
+    }
+
+    return placeablePositions;
+  };
   const clickHandler = (x: number, y: number) => {
     console.log(x, y);
     const newBoard = structuredClone(board);

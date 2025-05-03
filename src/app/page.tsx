@@ -25,6 +25,36 @@ export default function Home() {
     [0, -1],
     [-1, -1],
   ];
+  const placeable = (x: number, y: number, nowTurnColor: number, nowBoard: number[][]) => {
+    if (nowBoard[y][x] !== 0) return false;
+
+    for (const [dy, dx] of directions) {
+      let n = 1;
+      const ry = y + dy;
+      const rx = x + dx;
+      if (
+        nowBoard[ry] !== undefined &&
+        nowBoard[ry][rx] !== undefined &&
+        nowBoard[ry][rx] === 3 - nowTurnColor
+      ) {
+        while (
+          nowBoard[y + dy * (n + 1)] !== undefined &&
+          nowBoard[y + dy * (n + 1)][x + dx * (n + 1)] !== undefined &&
+          nowBoard[y + dy * (n + 1)][x + dx * (n + 1)] === 3 - nowTurnColor
+        ) {
+          n++;
+        }
+        if (
+          nowBoard[y + dy * (n + 1)] !== undefined &&
+          nowBoard[y + dy * (n + 1)][x + dx * (n + 1)] !== undefined &&
+          nowBoard[y + dy * (n + 1)][x + dx * (n + 1)] === nowTurnColor
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
   const clickHandler = (x: number, y: number) => {
     console.log(x, y);
     const newBoard = structuredClone(board);

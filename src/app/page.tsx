@@ -111,8 +111,8 @@ export default function Home() {
   const oneBoard = board.flat();
   const blackCount = oneBoard.filter((board) => board === 1).length;
   const whiteCount = oneBoard.filter((board) => board === 2).length;
-  console.log('黒', blackCount);
-  console.log('白', whiteCount);
+  console.log('黒:', blackCount);
+  console.log('白:', whiteCount);
   return (
     <div className={styles.container}>
       <div>
@@ -127,6 +127,17 @@ export default function Home() {
                 <div
                   className={styles.stone}
                   style={{ background: color === 1 ? '#000' : '#fff' }}
+                />
+              )}
+
+              {getPlaceable(turnColor, board).some(([px, py]) => px === x && py === y) && (
+                <div
+                  style={{
+                    backgroundColor: 'blue',
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                  }}
                 />
               )}
             </div>

@@ -5,14 +5,15 @@ import styles from './page.module.css';
 
 export default function Home() {
   const [turnColor, setTurnColor] = useState(1);
+  const [passCount, setPassCount] = useState(0);
   const [board, setBoard] = useState([
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 1, 2, 0, 0, 0],
-    [0, 0, 0, 2, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 2, 2, 1, 1, 1],
+    [1, 1, 1, 2, 2, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
     [0, 0, 0, 0, 0, 0, 0, 0],
   ]);
   const directions = [
@@ -107,6 +108,20 @@ export default function Home() {
       setTurnColor(3 - turnColor);
     }
   };
+  const placeableCells = getPlaceable(turnColor, board);
+
+  if (placeableCells.length === 0) {
+    const newPassCount = passCount + 1;
+    setPassCount(newPassCount);
+    setTurnColor(3 - turnColor);
+
+    if (newPassCount >= 2) {
+      alert('ゲーム終了！');
+      // 終了処理を書く（例：勝敗表示など）
+    }
+  } else {
+    setPassCount(0); // 置けたらパスカウントはリセット
+  }
   const whoseTurn = turnColor === 1 ? '黒' : '白';
   const oneBoard = board.flat();
   const blackCount = oneBoard.filter((board) => board === 1).length;
@@ -133,7 +148,7 @@ export default function Home() {
               {getPlaceable(turnColor, board).some(([px, py]) => px === x && py === y) && (
                 <div
                   style={{
-                    backgroundColor: 'blue',
+                    backgroundColor: 'gold',
                     width: '10px',
                     height: '10px',
                     borderRadius: '50%',

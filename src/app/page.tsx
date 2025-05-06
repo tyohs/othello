@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 
 export default function Home() {
@@ -108,20 +108,18 @@ export default function Home() {
       setTurnColor(3 - turnColor);
     }
   };
-  const placeableCells = getPlaceable(turnColor, board);
-
-  if (placeableCells.length === 0) {
-    const newPassCount = passCount + 1;
-    setPassCount(newPassCount);
-    setTurnColor(3 - turnColor);
-
-    if (newPassCount >= 2) {
-      alert('ゲーム終了！');
-      // 終了処理を書く（例：勝敗表示など）
+  useEffect(() => {
+    // レンダリング後に実行される
+    if (getPlaceable(turnColor, board).length === 0) {
+      setPassCount(passCount + 1);
+      setTurnColor(3 - turnColor);
+      if (passCount === 2) {
+        alert('終了します');
+      }
+    } else {
+      setPassCount(0);
     }
-  } else {
-    setPassCount(0); // 置けたらパスカウントはリセット
-  }
+  });
   const whoseTurn = turnColor === 1 ? '黒' : '白';
   const oneBoard = board.flat();
   const blackCount = oneBoard.filter((board) => board === 1).length;

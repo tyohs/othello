@@ -1,162 +1,120 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
+import {
+  BLACK,
+  WHITE,
+  createInitialBoard,
+  getLegalMoves,
+  getScore,
+  playMove,
+  type Board,
+  type Player,
+} from '../lib/othello';
 import styles from './page.module.css';
 
+type GameState = {
+  board: Board;
+  currentPlayer: Player;
+  gameOver: boolean;
+  message: string;
+};
+
+function initialGame(): GameState {
+  return {
+    board: createInitialBoard(),
+    currentPlayer: BLACK,
+    gameOver: false,
+    message: '黒のターンです',
+  };
+}
+
+function playerName(player: Player): string {
+  return player === BLACK ? '黒' : '白';
+}
+
 export default function Home() {
-  const [turnColor, setTurnColor] = useState(1);
-  const [passCount, setPassCount] = useState(0);
-  const [board, setBoard] = useState([
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 2, 2, 1, 1, 1],
-    [1, 1, 1, 2, 2, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-  ]);
-  const directions = [
-    [-1, 0],
-    [-1, 1],
-    [0, 1],
-    [1, 1],
-    [1, 0],
-    [1, -1],
-    [0, -1],
-    [-1, -1],
-  ];
-  const placeable = (x: number, y: number, nowTurnColor: number, nowBoard: number[][]) => {
-    if (nowBoard[y][x] !== 0) return false;
+  const [game, setGame] = useState<GameState>(initialGame);
+  const legalMoves = useMemo(
+    () => (game.gameOver ? [] : getLegalMoves(game.board, game.currentPlayer)),
+    [game.board, game.currentPlayer, game.gameOver],
+  );
+  const legalMoveKeys = useMemo(
+    () => new Set(legalMoves.map(({ x, y }) => `${x}-${y}`)),
+    [legalMoves],
+  );
+  const score = useMemo(() => getScore(game.board), [game.board]);
 
-    for (const [dy, dx] of directions) {
-      let n = 1;
-      const ry = y + dy;
-      const rx = x + dx;
-      if (
-        nowBoard[ry] !== undefined &&
-        nowBoard[ry][rx] !== undefined &&
-        nowBoard[ry][rx] === 3 - nowTurnColor
-      ) {
-        while (
-          nowBoard[y + dy * (n + 1)] !== undefined &&
-          nowBoard[y + dy * (n + 1)][x + dx * (n + 1)] !== undefined &&
-          nowBoard[y + dy * (n + 1)][x + dx * (n + 1)] === 3 - nowTurnColor
-        ) {
-          n++;
-        }
-        if (
-          nowBoard[y + dy * (n + 1)] !== undefined &&
-          nowBoard[y + dy * (n + 1)][x + dx * (n + 1)] !== undefined &&
-          nowBoard[y + dy * (n + 1)][x + dx * (n + 1)] === nowTurnColor
-        ) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-  const getPlaceable = (nowTurnColor: number, nowBoard: number[][]) => {
-    const placeablePositions: [number, number][] = [];
+  function handleMove(x: number, y: number): void {
+    if (game.gameOver) return;
+    const result = playMove(game.board, game.currentPlayer, { x, y });
+    if (!result) return;
 
-    for (let y = 0; y < 8; y++) {
-      for (let x = 0; x < 8; x++) {
-        if (placeable(x, y, nowTurnColor, nowBoard)) {
-          placeablePositions.push([x, y]);
-        }
-      }
+    if (result.gameOver) {
+      const finalScore = getScore(result.board);
+      const winner =
+        finalScore[BLACK] === finalScore[WHITE]
+          ? '引き分けです'
+          : `${finalScore[BLACK] > finalScore[WHITE] ? '黒' : '白'}の勝ちです`;
+      setGame({
+        board: result.board,
+        currentPlayer: result.nextPlayer,
+        gameOver: true,
+        message: `ゲーム終了：${winner}`,
+      });
+      return;
     }
 
-    return placeablePositions;
-  };
-  const clickHandler = (x: number, y: number) => {
-    console.log(x, y);
-    const newBoard = structuredClone(board);
-    if (board[y][x] !== 0) return;
-    let flipped = false;
-    for (const [dy, dx] of directions) {
-      let n = 1;
-      const ry = y + dy;
-      const rx = x + dx;
-      if (
-        board[ry] !== undefined &&
-        board[ry][rx] !== undefined &&
-        board[ry][rx] === 3 - turnColor
-      ) {
-        while (
-          board[y + dy * (n + 1)] !== undefined &&
-          board[y + dy * (n + 1)][x + dx * (n + 1)] !== undefined &&
-          board[y + dy * (n + 1)][x + dx * (n + 1)] === 3 - turnColor
-        ) {
-          n++;
-        }
-        if (
-          board[y + dy * (n + 1)] !== undefined &&
-          board[y + dy * (n + 1)][x + dx * (n + 1)] !== undefined &&
-          board[y + dy * (n + 1)][x + dx * (n + 1)] === turnColor
-        ) {
-          newBoard[y][x] = turnColor;
-          for (let i = 1; i <= n; i++) {
-            newBoard[y + dy * i][x + dx * i] = turnColor;
-          }
-          flipped = true;
-        }
-      }
-    }
-    if (flipped) {
-      setBoard(newBoard);
-      setTurnColor(3 - turnColor);
-    }
-  };
-  useEffect(() => {
-    // レンダリング後に実行される
-    if (getPlaceable(turnColor, board).length === 0) {
-      setPassCount(passCount + 1);
-      setTurnColor(3 - turnColor);
-      if (passCount === 2) {
-        alert('終了します');
-      }
-    } else {
-      setPassCount(0);
-    }
-  });
-  const whoseTurn = turnColor === 1 ? '黒' : '白';
-  const oneBoard = board.flat();
-  const blackCount = oneBoard.filter((board) => board === 1).length;
-  const whiteCount = oneBoard.filter((board) => board === 2).length;
-  console.log('黒:', blackCount);
-  console.log('白:', whiteCount);
+    const passMessage = result.passedPlayer
+      ? `${playerName(result.passedPlayer)}は置ける場所がないためパスしました。`
+      : '';
+    setGame({
+      board: result.board,
+      currentPlayer: result.nextPlayer,
+      gameOver: false,
+      message: `${passMessage}${playerName(result.nextPlayer)}のターンです`,
+    });
+  }
+
   return (
-    <div className={styles.container}>
-      <div>
-        黒：{blackCount} 白：{whiteCount}
-        <p>現在のターンは{whoseTurn}です</p>
+    <main className={styles.container}>
+      <h1>Othello</h1>
+      <div className={styles.score} aria-label="現在のスコア">
+        <span>黒：{score[BLACK]}</span>
+        <span>白：{score[WHITE]}</span>
       </div>
-      <div className={styles.board}>
-        {board.map((row, y) =>
-          row.map((color, x) => (
-            <div className={styles.cell} key={`${x}-${y}`} onClick={() => clickHandler(x, y)}>
-              {color !== 0 && (
-                <div
-                  className={styles.stone}
-                  style={{ background: color === 1 ? '#000' : '#fff' }}
-                />
-              )}
-
-              {getPlaceable(turnColor, board).some(([px, py]) => px === x && py === y) && (
-                <div
-                  style={{
-                    backgroundColor: 'gold',
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                  }}
-                />
-              )}
-            </div>
-          )),
+      <p className={styles.status} aria-live="polite">
+        {game.message}
+      </p>
+      <div className={styles.board} role="grid" aria-label="オセロ盤">
+        {game.board.map((row, y) =>
+          row.map((color, x) => {
+            const isLegal = legalMoveKeys.has(`${x}-${y}`);
+            return (
+              <button
+                className={styles.cell}
+                key={`${x}-${y}`}
+                type="button"
+                role="gridcell"
+                aria-label={`${y + 1}行${x + 1}列${color === BLACK ? '、黒石' : color === WHITE ? '、白石' : isLegal ? '、置けます' : '、空き'}`}
+                disabled={!isLegal || game.gameOver}
+                onClick={() => handleMove(x, y)}
+              >
+                {color !== 0 ? (
+                  <span
+                    className={`${styles.stone} ${color === BLACK ? styles.black : styles.white}`}
+                    aria-hidden="true"
+                  />
+                ) : null}
+                {isLegal ? <span className={styles.marker} aria-hidden="true" /> : null}
+              </button>
+            );
+          }),
         )}
       </div>
-    </div>
+      <button className={styles.reset} type="button" onClick={() => setGame(initialGame())}>
+        最初から遊ぶ
+      </button>
+    </main>
   );
 }

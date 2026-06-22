@@ -1,32 +1,50 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Othello
 
-## Getting Started
+ReactとTypeScriptで実装した、ブラウザで2人対戦できるオセロです。合法手は盤面上の金色の点で表示されます。
 
-First, run the development server:
+## 遊び方
+
+1. 黒から開始します。
+2. 金色の点があるマスを選ぶと、8方向のうち挟める石がすべて裏返ります。
+3. 置ける場所がないプレイヤーは自動でパスします。
+4. 双方が置けなくなると、石の多い側を勝者として終了します。
+5. 「最初から遊ぶ」で標準初期盤面へ戻せます。
+
+## 設計
+
+ゲームルールは [`src/lib/othello.ts`](src/lib/othello.ts) の純粋関数へ分離しています。
+
+- `getFlips`: 1手で裏返る石を8方向から収集
+- `getLegalMoves`: 現在のプレイヤーが置ける全マスを列挙
+- `playMove`: 元の盤面を変更せず、新しい盤面と次のターンを返す
+- `resolveNextTurn`: 通常交代、自動パス、ゲーム終了を判定
+- `getScore`: 黒石と白石を集計
+
+React側は関数の結果を表示するだけなので、ルールをブラウザなしでunit testできます。
+
+## Setup
+
+Node.js 20以上を推奨します。
 
 ```bash
+npm ci
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) を開いてください。
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## Validation
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npm audit --omit=dev
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+`next.config.ts` はGitHub Pages向けのstatic exportを維持しています。GitHub Actions上ではリポジトリ名を`basePath`として使用し、ローカルでは `/` で動作します。
 
-## Learn More
+## 学んだこと
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+初期実装では、合法手判定・石の反転・自動パスをReactコンポーネント内に直接書いていました。そのため、状態を更新する`useEffect`がレンダーごとに動く問題がありました。今回、ゲームルールを純粋関数化し、1手の結果として次のターンまで決める構造へ変更しています。
